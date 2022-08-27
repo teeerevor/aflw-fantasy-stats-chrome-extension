@@ -1,0 +1,26 @@
+{
+    "name": "AFLW Fantasy Points",
+    "description": "This extension will calculate AFLW Fantasy Points and add them to a AFLW site match centre.",
+    "version": "0.0.0.1",
+    "manifest_version": 3,
+    "icons": {
+        "16": "/images/dubLogo16.png",
+        "32": "/images/dubLogo32.png",
+        "48": "/images/dubLogo48.png",
+        "128": "/images/dubLogo128.png"
+    },
+    "permissions": ["activeTab", "storage", "tabs"],
+    "content_scripts": [
+        {
+            "matches": ["*://www.womens.afl/*"],
+            "run_at": "document_start",
+            "js": ["inject.js"]
+        }
+    ],
+    "web_accessible_resources": [
+        {
+            "resources": ["pointsTracker.js"],
+            "matches": ["*://www.womens.afl/*"]
+        }
+    ]
+}
