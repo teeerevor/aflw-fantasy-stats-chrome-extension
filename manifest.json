@@ -9,7 +9,7 @@
         "48": "/images/dubLogo48.png",
         "128": "/images/dubLogo128.png"
     },
-    "permissions": ["activeTab", "storage", "tabs"],
+    "permissions": ["activeTab"],
     "content_scripts": [
         {
             "matches": ["*://www.womens.afl/*"],
