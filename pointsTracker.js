@@ -2,26 +2,20 @@ function processTeamStats(teamStats) {
     var playerStats = {};
     teamStats.forEach((player) => {
         var jumperNumber = player.player.jumperNumber;
+        var playerName = player.player.player.playerName;
+        var name = `${playerName.firstName} ${playerName.surname}`;
         var stats = player.playerStats.stats;
-        var kicks = stats.kicks;
-        var handballs = stats.handballs;
-        var marks = stats.marks;
-        var hitOuts = stats.hitouts;
-        var tackles = stats.tackles;
-        var freesAgainst = stats.freesAgainst;
-        var freesFor = stats.freesFor;
-        var goals = stats.goals;
-        var behinds = stats.behinds;
+        const { kicks, handballs, marks, hitouts, tackles, freesFor, freesAgainst, goals, behinds } = stats || {};
         var points =
             goals * 6 +
             tackles * 4 +
             (kicks + marks) * 3 +
             handballs * 2 +
-            hitOuts +
+            hitouts +
             behinds +
             freesFor -
             freesAgainst * 3;
-        playerStats[jumperNumber] = points;
+        playerStats[jumperNumber] = { ...stats, points, name };
     });
     return playerStats;
 }
@@ -31,6 +25,9 @@ function removeElementsByClass(className) {
     while (elements.length > 0) {
         elements[0].parentNode.removeChild(elements[0]);
     }
+}
+function sortTeam(playerStats) {
+    Object.keys(playerStats).sort((a, b) => playerStats[a].points - playerStats[b].points);
 }
 
 function displayFantasyPoints(homeTeamStats, awayTeamStats) {
@@ -56,8 +53,80 @@ function displayFantasyPoints(homeTeamStats, awayTeamStats) {
             var td = document.createElement('td');
             td.classList.add('mc-player-stats__cell', 'fantasy-points');
             td.style.backgroundColor = `rgba(255, 94, 69, ${rowIndex % 2 ? '0.1' : '0.05'})`;
-            td.append(stats[playerNumber]);
+            td.append(stats[playerNumber].points);
             row.append(td);
+        });
+    });
+}
+
+const columns = [
+    'player',
+    'disposals',
+    'kicks',
+    'handballs',
+    'marks',
+    'hitouts',
+    'tackles',
+    'freesFor',
+    'freesAgainst',
+    'goals-behinds',
+    'points',
+];
+const headingMap = {
+    player: 'Player',
+    disposals: 'D',
+    kicks: 'K',
+    handballs: 'HB',
+    marks: 'M',
+    hitouts: 'HO',
+    tackles: 'T',
+    freesFor: 'FF',
+    freesAgainst: 'FA',
+    'goals-behinds': 'G.B',
+    points: 'PTS',
+};
+
+function displayFantasyTables(homeTeamStats, awayTeamStats) {
+    const homeList = sortTeam(homeTeamStats);
+    const awayList = sortTeam(awayTeamStats);
+    removeElementsByClass('mc-player-stats__cell');
+    removeElementsByClass('player-key-stats__header-label');
+    var tables = Array.from(document.getElementsByClassName('mc-player-stats__table'));
+    tables.forEach((table, index) => {
+        var header = table.children[0].children[0];
+        var body = table.children[0].children[1];
+
+        columns.forEach((column) => {
+            var th = document.createElement('th');
+            th.classList.add('mc-player-stats__header-cell');
+            if (column == 'points') {
+                th.style.backgroundColor = 'rgba(255, 94, 69, 0.3)';
+            }
+            var thspan = document.createElement('span');
+            thspan.className = 'player-key-stats__header-label';
+            thspan.append(headingMap[column]);
+            th.append(thspan);
+            header.append(th);
+
+            var stats = index == 0 ? homeTeamStats : awayTeamStats;
+            var list = index == 0 ? homeList : awayList;
+            list.forEach((player, rowIndex) => {
+                var td = document.createElement('td');
+                td.classList.add('mc-player-stats__cell');
+                if (column == 'points') {
+                    td.style.backgroundColor = `rgba(255, 94, 69, ${rowIndex % 2 ? '0.1' : '0.05'})`;
+                }
+
+                const { name, goals, behinds } = stats[playerNumber] || {};
+                if (column == 'player') {
+                    td.append(`${player} - ${name}`);
+                } else if (column == 'goals-behinds') {
+                    td.append(`${goals}.${behinds}`);
+                } else {
+                    td.append(stats[playerNumber][column]);
+                }
+                row.append(td);
+            });
         });
     });
 }
