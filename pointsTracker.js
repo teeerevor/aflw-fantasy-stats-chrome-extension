@@ -2,8 +2,8 @@ function processTeamStats(teamStats) {
     var playerStats = {};
     teamStats.forEach((player) => {
         var jumperNumber = player.player.jumperNumber;
-        var playerName = player.player.player.playerName;
-        var name = `${playerName.firstName} ${playerName.surname}`;
+        var playerName = player.player.player.player.playerName;
+        var name = `${playerName.givenName} ${playerName.surname}`;
         var stats = player.playerStats.stats;
         const { kicks, handballs, marks, hitouts, tackles, freesFor, freesAgainst, goals, behinds } = stats || {};
         var points =
@@ -27,7 +27,9 @@ function removeElementsByClass(className) {
     }
 }
 function sortTeam(playerStats) {
-    Object.keys(playerStats).sort((a, b) => playerStats[a].points - playerStats[b].points);
+    console.log({ playerStats });
+    console.log({ keys: Object.keys(playerStats) });
+    return Object.keys(playerStats).sort((a, b) => playerStats[b].points - playerStats[a].points);
 }
 
 function displayFantasyPoints(homeTeamStats, awayTeamStats) {
@@ -89,44 +91,54 @@ const headingMap = {
 function displayFantasyTables(homeTeamStats, awayTeamStats) {
     const homeList = sortTeam(homeTeamStats);
     const awayList = sortTeam(awayTeamStats);
+    console.log({ homeList, awayList });
     removeElementsByClass('mc-player-stats__cell');
-    removeElementsByClass('player-key-stats__header-label');
+    removeElementsByClass('mc-player-stats__header-cell');
     var tables = Array.from(document.getElementsByClassName('mc-player-stats__table'));
     tables.forEach((table, index) => {
+        console.log({ 0: table.children[0], 1: table.children[1] });
         var header = table.children[0].children[0];
-        var body = table.children[0].children[1];
+        var body = table.children[1];
 
         columns.forEach((column) => {
             var th = document.createElement('th');
+            var th = document.createElement('th');
             th.classList.add('mc-player-stats__header-cell');
-            if (column == 'points') {
-                th.style.backgroundColor = 'rgba(255, 94, 69, 0.3)';
-            }
+            if (column == 'points') th.style.backgroundColor = 'rgba(255, 94, 69, 0.3)';
+            if (column == 'player') th.style.width = '100px';
+            else th.style.width = '35px';
             var thspan = document.createElement('span');
             thspan.className = 'player-key-stats__header-label';
             thspan.append(headingMap[column]);
             th.append(thspan);
             header.append(th);
+        });
 
-            var stats = index == 0 ? homeTeamStats : awayTeamStats;
-            var list = index == 0 ? homeList : awayList;
-            list.forEach((player, rowIndex) => {
+        var stats = index == 0 ? homeTeamStats : awayTeamStats;
+        var list = index == 0 ? homeList : awayList;
+        list.forEach((player, rowIndex) => {
+            var tr = document.createElement('tr');
+            columns.forEach((column) => {
                 var td = document.createElement('td');
                 td.classList.add('mc-player-stats__cell');
                 if (column == 'points') {
                     td.style.backgroundColor = `rgba(255, 94, 69, ${rowIndex % 2 ? '0.1' : '0.05'})`;
+                } else {
+                    td.style.backgroundColor = rowIndex % 2 ? '#f5f4f4' : '#fff';
                 }
 
-                const { name, goals, behinds } = stats[playerNumber] || {};
+                const { name, goals, behinds } = stats[player] || {};
                 if (column == 'player') {
                     td.append(`${player} - ${name}`);
+                    td.style.textAlign = 'left';
                 } else if (column == 'goals-behinds') {
                     td.append(`${goals}.${behinds}`);
                 } else {
-                    td.append(stats[playerNumber][column]);
+                    td.append(stats[player][column]);
                 }
-                row.append(td);
+                tr.append(td);
             });
+            body.append(tr);
         });
     });
 }
@@ -160,7 +172,7 @@ function displayFantasyTables(homeTeamStats, awayTeamStats) {
                 if (data && data.homeTeamPlayerStats) {
                     var homeTeamPoints = processTeamStats(data.homeTeamPlayerStats);
                     var awayTeamPoints = processTeamStats(data.awayTeamPlayerStats);
-                    displayFantasyPoints(homeTeamPoints, awayTeamPoints);
+                    displayFantasyTables(homeTeamPoints, awayTeamPoints);
                 }
             }
         });
